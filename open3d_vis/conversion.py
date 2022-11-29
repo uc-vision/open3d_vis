@@ -2,7 +2,7 @@ from typing import Callable
 import torch
 import numpy as np
 
-from structs.struct import Struct
+from py_structs import Struct
 import dataclasses
 
 

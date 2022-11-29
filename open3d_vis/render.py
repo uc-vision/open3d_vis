@@ -4,7 +4,7 @@ import open3d as o3d
 
 import torch
 
-from .conversion import to_numpy
+from conversion import to_numpy
 from camera_geometry.transforms import batch_transform_points, join_rt
 
 

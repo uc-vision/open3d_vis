@@ -4,22 +4,30 @@ import open3d as o3d
 
 import torch
 
-from conversion import to_numpy
+from .conversion import to_numpy
 from camera_geometry.transforms import batch_transform_points, join_rt
 
 
 
 def line_set(points, edges, color=[0, 0, 1]):
+  points, edges = to_numpy(points), to_numpy(edges)
+
   return o3d.geometry.LineSet(
       points=o3d.utility.Vector3dVector(points), 
       lines=o3d.utility.Vector2iVector(edges)).paint_uniform_color(color)
 
 
-def triangle_mesh(vertices, triangles):
-  return o3d.geometry.TriangleMesh(
+def triangle_mesh(vertices, triangles, vertex_colors=None):
+  vertices, triangles = to_numpy(vertices), to_numpy(triangles)
+
+  mesh = o3d.geometry.TriangleMesh(
       vertices=o3d.utility.Vector3dVector(vertices), 
       triangles=o3d.utility.Vector3iVector(triangles))
 
+  if vertex_colors is not None:
+    mesh.vertex_colors = o3d.utility.Vector3dVector(to_numpy(vertex_colors))
+
+  return mesh
 
 
 def lines_between(points1, points2, color=[0, 0, 1]):
@@ -104,19 +112,14 @@ def sphere(pos, radius=1.0, color=[0, 0, 1]):
   sphere.paint_uniform_color(color)
   return sphere
 
-def triangle_mesh(vertices, triangles, vertex_colors=None):
 
-  mesh = o3d.geometry.TriangleMesh(
-      vertices=o3d.utility.Vector3dVector(vertices), 
-      triangles=o3d.utility.Vector3iVector(triangles))
-
-  if vertex_colors is not None:
-    mesh.vertex_colors = o3d.utility.Vector3dVector(vertex_colors)
-
-  return mesh
 
 
 def instance_mesh(mesh, transforms, instance_colors=None):
+  if instance_colors is not None:
+    instance_colors = to_numpy(instance_colors)
+
+  transforms = to_numpy(transforms)
 
   mesh_triangles = np.asarray(mesh.triangles)
   mesh_vertices = np.asarray(mesh.vertices)
@@ -145,10 +148,16 @@ def instance_mesh(mesh, transforms, instance_colors=None):
 
 
 def instance_mesh_at(mesh, offsets, scales, instance_colors=None):
+  offsets = to_numpy(offsets)
+  scales = to_numpy(scales)
+
 
   if isinstance(scales, Number):
     scales = np.full((offsets.shape[0],), scales,
                      dtype=np.float32).reshape(-1, 1, 1)
+  else:
+    assert scales.shape == offsets.shape 
+    scales = to_numpy(scales).reshape(-1, 1, 3)
 
   m = np.eye(3).reshape(1, 3, 3) * scales
 
@@ -232,16 +241,18 @@ def spheres(points, radii, resolution=6, colors=None):
   sphere = o3d.geometry.TriangleMesh.create_sphere(resolution=resolution)
   sphere.compute_vertex_normals()
 
-  mesh = instance_mesh(sphere, points, radii, colors=colors)
+  mesh = instance_mesh_at(sphere, points, radii, colors=colors)
   return mesh
 
 
 def boxes(lower, upper, colors=None):
 
   box = o3d.geometry.TriangleMesh.create_box(1, 1, 1)
-  box.compute_vertex_normals()
 
-  mesh = instance_mesh(box, lower, upper-lower, colors=colors)
+  mesh = instance_mesh_at(box, lower, upper-lower, instance_colors=colors)
+  mesh.compute_triangle_normals()
+
+  
   return mesh
 
 

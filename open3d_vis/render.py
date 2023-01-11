@@ -9,12 +9,33 @@ from camera_geometry.transforms import batch_transform_points, join_rt
 
 
 
-def line_set(points, edges, color=[0, 0, 1]):
+def line_set(points, edges, colors=None, color=None):
   points, edges = to_numpy(points), to_numpy(edges)
 
-  return o3d.geometry.LineSet(
+  lines = o3d.geometry.LineSet(
       points=o3d.utility.Vector3dVector(points), 
-      lines=o3d.utility.Vector2iVector(edges)).paint_uniform_color(color)
+      lines=o3d.utility.Vector2iVector(edges))
+
+  if colors is not None:
+    lines.colors = o3d.utility.Vector3dVector(to_numpy(colors))
+  elif color is not None:
+    paint_uniform_color(color)
+
+  return lines
+
+def line_segments(a, b, colors=None, color=None):
+  points, edges = to_numpy(points), to_numpy(edges)
+
+  lines = o3d.geometry.LineSet(
+      points=o3d.utility.Vector3dVector(points), 
+      lines=o3d.utility.Vector2iVector(edges))
+
+  if colors is not None:
+    lines.colors = o3d.utility.Vector3dVector(to_numpy(colors))
+  elif color is not None:
+    paint_uniform_color(color)
+
+  return lines
 
 
 def triangle_mesh(vertices, triangles, vertex_colors=None):
@@ -30,7 +51,7 @@ def triangle_mesh(vertices, triangles, vertex_colors=None):
   return mesh
 
 
-def lines_between(points1, points2, color=[0, 0, 1]):
+def lines_segments(points1, points2, colors=None, color=None):
   points1, points2 = to_numpy(points1), to_numpy(points2)
 
   assert points1.shape == points2.shape
@@ -39,13 +60,9 @@ def lines_between(points1, points2, color=[0, 0, 1]):
   return line_set(
     points = np.concatenate([points1, points2]),
     edges = np.stack([np.arange(n), np.arange(n, 2 * n)], axis=1),
+    colors = colors,
     color = color
   )
-
-
-def line(a, b, color=[0, 0, 1]):
-  a, b = to_numpy(a), to_numpy(b)
-  return lines_between(a.reshape(-1, 3), b.reshape(-1, 3), color=color)
 
 
 

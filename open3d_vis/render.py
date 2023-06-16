@@ -202,7 +202,7 @@ def instance_lines(line_inst, transforms, instance_colors=None):
 def concat_mesh(meshes):
 
   vertices  = [np.asarray(mesh.vertices, dtype=np.float32) for mesh in meshes]
-  triangles = [np.asarray(mesh.triangles, dtype=np.int) for mesh in meshes]
+  triangles = [np.asarray(mesh.triangles, dtype=np.int32) for mesh in meshes]
 
   vertex_colors = None
   if meshes[0].has_vertex_colors():
@@ -220,7 +220,7 @@ def concat_mesh(meshes):
 def concat_lines(line_sets):
 
   points = [np.asarray(line.points, dtype=np.float32) for line in line_sets]
-  lines  = [np.asarray(line.lines, dtype=np.int) for line in line_sets]
+  lines  = [np.asarray(line.lines, dtype=np.int32) for line in line_sets]
 
 
   colors = None

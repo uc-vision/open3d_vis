@@ -7,6 +7,7 @@ import torch
 from .conversion import to_numpy
 from camera_geometry.transforms import batch_transform_points, join_rt
 
+from beartype import beartype
 
 
 def line_set(points, edges, colors=None, color=None):
@@ -19,21 +20,7 @@ def line_set(points, edges, colors=None, color=None):
   if colors is not None:
     lines.colors = o3d.utility.Vector3dVector(to_numpy(colors))
   elif color is not None:
-    paint_uniform_color(color)
-
-  return lines
-
-def line_segments(a, b, colors=None, color=None):
-  points, edges = to_numpy(points), to_numpy(edges)
-
-  lines = o3d.geometry.LineSet(
-      points=o3d.utility.Vector3dVector(points), 
-      lines=o3d.utility.Vector2iVector(edges))
-
-  if colors is not None:
-    lines.colors = o3d.utility.Vector3dVector(to_numpy(colors))
-  elif color is not None:
-    paint_uniform_color(color)
+    lines.paint_uniform_color(color)
 
   return lines
 
@@ -51,7 +38,7 @@ def triangle_mesh(vertices, triangles, vertex_colors=None):
   return mesh
 
 
-def lines_segments(points1, points2, colors=None, color=None):
+def segments(points1, points2, colors=None, color=None):
   points1, points2 = to_numpy(points1), to_numpy(points2)
 
   assert points1.shape == points2.shape
@@ -317,7 +304,7 @@ def gen_tangents(dirs, t):
 
   return np.stack(tangents)
 
-
+@beartype
 def unit_circle(n):
   a = np.linspace(0, 2 * np.pi, n + 1)[:-1]
   return np.stack( [np.sin(a), np.cos(a)], axis=1)
@@ -339,8 +326,8 @@ def tube_vertices(points, radii, n=10):
      + points.reshape(points.shape[0], 1, 3)
   
 
-
-def tube_loops(points, radii, n=10):
+@beartype
+def tube_loops(points, radii, n:int=10):
   circles = tube_vertices(points, radii, n)
   return line_loops(circles)
 
@@ -373,4 +360,5 @@ def tube_mesh(points, radii, n=10):
   mesh.compute_vertex_normals()
 
   return mesh
+
 
